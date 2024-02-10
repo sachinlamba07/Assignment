@@ -12,86 +12,87 @@ import java.util.Map;
 
 public class CSVSolution {
 
-   
-    private static void evaluateCSV(List<String[]> rows) 
-    {
-        for (int i = 0; i < rows.size(); ++i) {
-            for (int j = 0; j < rows.get(i).length; ++j) {
-                rows.get(i)[j] = evaluateCell(rows.get(i)[j], rows);
-            }
-        }
-    }
+	private static Map<String, String> cells = new HashMap<>();
+	private static Map<String, Double> evaluatedResults = new HashMap<>();
 
-    
-    private static String evaluateCell(String cell, List<String[]> rows) {
-        if (cell.startsWith("=")) {
-            String formula = cell.substring(1);
-            return evaluateFormula(formula, rows);
-        } else {
-            return cell;
-        }
-    }
-    
-    
-    public static void main(String[] args) throws IOException {
-        useCSV("input.csv");
-    }
+	public static void main(String[] args)
+	{
+	    try {
+	        processCSV("input.csv", "output.csv");
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+	}
 
-    public static void useCSV(String fileName) throws IOException {
-        
-            // Read input CSV file
-            BufferedReader reader = new BufferedReader(new FileReader(fileName));
-            List<String[]> rows = new ArrayList<>();
-            String line;
-            try {
-				while ((line = reader.readLine()) != null) {
-				    rows.add(line.split(", "));
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-            try {
-				reader.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+	private static void processCSV(String inputFileName, String outputFileName) throws IOException
+	{
+	    readCSV(inputFileName);
+	    evaluateFormulas();
+	    writeCSV(outputFileName);
+	}
 
-            evaluateCSV(rows);
+	private static void readCSV(String fileName) throws IOException {
+	    try (BufferedReader br = new BufferedReader(new FileReader(fileName)))
+	    {
+	        String line;
+	        while ((line = br.readLine()) != null) {
+	            String[] parts = line.split(", ");
+	            for (String part : parts) {
+	                String[] cell = part.split(": ");
+	                cells.put(cell[0], cell[1]);
+	            }
+	        }
+	    }
+	}
 
-            BufferedWriter wr = new BufferedWriter(new FileWriter("output.csv"));
-            for (String[] row : rows)
-            {
-                wr.write(String.join(", ", row));
-                wr.newLine();
-            }
-            wr.close();
+	private static void evaluateFormulas() {
+	    for (Map.Entry<String, String> entry : cells.entrySet())
+	    {
+	        String key = entry.getKey();
+	        String value = entry.getValue();
+	        if (value.startsWith("="))
+	        {
+	            String formula = value.substring(1);
+	            double result = evaluateFormula(key, formula, new HashMap<>());
+	            cells.put(key, String.valueOf(result));
+	        }
+	    }
+	}
 
-            System.out.println("CSV file saved succsfully.");
-        
-    }
+	private static double evaluateFormula(String currentCell, String formula, Map<String, Double> evaluated) {
+	    if (evaluated.containsKey(formula))
+	    {
+	        return evaluated.get(formula);
+	    }
 
-    
-   
+	    String[] tokens = formula.split("\\+|\\-|\\*|\\/");
+	    double result = 0;
 
-   
-    private static String evaluateFormula(String formula, List<String[]> rows) {
-        String[] parts = formula.split("\\+");
-        int sum = 0;
-        for (String part : parts) {
-          
-                String[] coordinates = part.split("(?<=\\D)(?=\\d)");
-                int row = Integer.parseInt(coordinates[1]) - 1;
-                int col = coordinates[0].charAt(0) - 'A';
-                String value = evaluateCell(rows.get(row)[col], rows);
-                sum += Integer.parseInt(value);
-            
-        }
-        return String.valueOf(sum);
-    }
+	    for (String token : tokens)
+	    {
+	        if (cells.containsKey(token)) 
+	        {
+	            result += evaluateFormula(token, cells.get(token), evaluated);
+	        } else
+	        {
+	            result += Double.parseDouble(token);
+	        }
+	    }
 
- 
+	    evaluated.put(formula, result);
+	    return result;
+	}
+
+	private static void writeCSV(String fileName) throws IOException
+	{
+	    try (FileWriter writer = new FileWriter(fileName))
+	    {
+	        for (Map.Entry<String, String> entry : cells.entrySet())
+	        {
+	            writer.write(entry.getKey() + ": " + entry.getValue() + ", ");
+	        }
+	    }
+	}
     
 }
 

@@ -1,0 +1,38 @@
+
+Code is present in /TheoreticalChallenge/src/main/java/CSVSolution.java
+
+
+Question 1 :- How will you tackle the challenge above?
+
+Ans :-   Reading CSV Data:-
+
+           -> Read the CSV file line by line.
+           -> Split each line to extract cell names and values.
+           -> Add a HashMap with cell names and their corresponding values or formulas.
+
+
+         Evaluating Formulas:
+
+            ->Iterate through the HashMap entries.
+            ->If a cell value starts with "=", it indicates a formula.
+            ->Use a recursive function to evaluate the formula, considering dependencies on other cells.
+
+
+          Write the final results to an output CSV file.
+
+
+Question 2 :- What type of errors you would you check for?
+
+Ans :-       CSV Parsing :-
+
+                -> Check for the correct format of the CSV input.
+
+             Formula Evaluation:-
+
+                -> Prevent infinite recursion.
+                -> Validate arithmetic operations.
+
+Question 3 :- How might a user break your code?
+
+Ans :-        Users might break the code by providing CSV files with incorrect formatting
+              CSV files with incorrect or unexpected characters.
